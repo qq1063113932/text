@@ -1,0 +1,11 @@
+{
+    "ip": "192.168.153.176",
+    "port": "3306",
+    "username": "root",
+    "password": "123456",
+    "database": "textdb",
+    "minSize": 100,
+    "maxSize": 1000,
+    "maxIdleTime": 5000,
+    "timeout": 1000
+}

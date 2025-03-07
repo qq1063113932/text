@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "cctype": "cpp",
+        "cstdarg": "cpp",
+        "cstdio": "cpp",
+        "cstdlib": "cpp",
+        "cwchar": "cpp",
+        "cwctype": "cpp",
+        "iostream": "cpp",
+        "condition_variable": "cpp"
+    }
+}
