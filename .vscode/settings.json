@@ -7,6 +7,10 @@
         "cwchar": "cpp",
         "cwctype": "cpp",
         "iostream": "cpp",
-        "condition_variable": "cpp"
+        "condition_variable": "cpp",
+        "mutex": "cpp",
+        "iosfwd": "cpp",
+        "ostream": "cpp",
+        "chrono": "cpp"
     }
 }
