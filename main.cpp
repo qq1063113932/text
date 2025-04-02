@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <iostream>
 #include "mysql_connection_pool.h"
-
-using namespace std;
+#include "threadpool.h"
+#include "socket.h"
 
 void query()
 {
@@ -20,8 +20,30 @@ void query()
     }
 }
 
+int add(int a, int b)
+{
+    cout << "当前线程：" << this_thread::get_id() << endl;
+    return a + b;
+}
+
+void threadwork()
+{
+    Threadpool* threadpool = Threadpool::GetInstance(4);
+    for(int i = 0; i < 20; ++i)
+    {
+        auto resfuture = threadpool->enqueue([](int a, int b) -> int{
+            cout << "当前线程：" << this_thread::get_id() << endl;
+            return a + b;
+        }, 10*i, 10*i);
+        cout << "result: " << resfuture.get() << endl;
+    }
+}
+
 int main()
 {
-    query();
+    // query();
+    // threadwork();
+    Socket server;
+    server.start();
     return 0;
 }
