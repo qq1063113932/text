@@ -18,6 +18,7 @@ class Socket
 {
 public:
     Socket();
+    ~Socket();
     bool start();
     void evenAccept();
     void eventClose();
@@ -34,7 +35,7 @@ private:
     struct sockaddr_in address;
     const int m_port = 8080;
     int m_backlog = 4; //连接队列最大长度
-    Threadpool* pool = Threadpool::GetInstance(4);
+    Threadpool* pool;
 
 };
 

@@ -1,0 +1,13 @@
+[INFO]  [2025-04-08 09:25:44] start logger
+[DEBUG]  [2025-04-08 09:25:44] User 42 performed login in 3.2 seconds
+[WARNING]  [2025-04-08 09:25:44] hello worldloginloginlogin
+[ERROR]  [2025-04-08 09:25:44] User 42 performed login in seconds 3.2
+[INFO]  [2025-04-08 09:25:44] User 42 performed login in {} seconds 
+[INFO]  [2025-04-08 09:25:44] User {} performed {} in {} seconds 
+[INFO]  [2025-04-08 02:26:25] start logger
+[DEBUG]  [2025-04-08 02:26:25] User 42 performed login in 3.2 seconds
+[WARNING]  [2025-04-08 02:26:25] hello worldloginloginlogin
+[ERROR]  [2025-04-08 02:26:25] User 42 performed login in seconds 3.2
+[INFO]  [2025-04-08 02:26:25] User 42 performed login in {} seconds 
+[INFO]  [2025-04-08 02:26:25] User {} performed {} in {} seconds 
+[DEBUG]  [2025-04-08 02:26:25] User {} performed {} in {} seconds 

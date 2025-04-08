@@ -2,7 +2,12 @@
 
 Socket::Socket()
 {    
-    
+    pool = new Threadpool(4);
+}
+
+Socket::~Socket()
+{
+    delete pool;
 }
 
 bool Socket::start()
@@ -37,8 +42,8 @@ bool Socket::start()
         return false;
     }
     cout << "socket is listening on port " << m_port << "..." << endl;
-    // evenAccept();
-    select_model();
+    evenAccept();
+    // select_model();
     return true;
 }
 
@@ -90,8 +95,8 @@ void Socket::evenAccept()
         {
             cout << "socket accept error" << endl;
         }
-        // pool->enqueue(bind(&Socket::worker, this, new_socket)); // worker是成员函数有隐藏的this指针，使用bind或者lambda表达式
-        worker(new_socket);
+        pool->enqueue(bind(&Socket::worker, this, new_socket)); // worker是成员函数有隐藏的this指针，使用bind或者lambda表达式
+        // worker(new_socket);
     }
 }
 

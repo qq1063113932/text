@@ -14,10 +14,41 @@ using namespace std;
 class Threadpool
 {
 public:
-    static Threadpool* GetInstance(int ThreadNum)
+    // static Threadpool* GetInstance(int ThreadNum)
+    // {
+    //     static Threadpool pool(ThreadNum);
+    //     return &pool;
+    // }
+
+    Threadpool(int ThreadNum)
     {
-        static Threadpool pool(ThreadNum);
-        return &pool;
+        for(int i = 0; i < ThreadNum; ++i)
+        {
+            workers.emplace_back([this](){
+                this->worker();
+            });
+        }
+    }
+
+    ~Threadpool()
+    {
+        {
+            unique_lock<mutex> locker(mtx);
+            isStop = true;
+        }
+        cout << "线程池析构了" << endl;
+        //通知所有阻塞线程
+        cv.notify_all();
+    
+        //确保线程执行完成
+        // for(thread& onethread : workers)
+        // {
+        //     onethread.join();
+        // }
+        for(int i = 0; i < workers.size(); ++i)
+        {
+            workers[i].join();
+        }
     }
 
     //任务队列
@@ -55,37 +86,6 @@ public:
     }
 
 private:
-    Threadpool(int ThreadNum)
-    {
-        for(int i = 0; i < ThreadNum; ++i)
-        {
-            workers.emplace_back([this](){
-                this->worker();
-            });
-        }
-    }
-
-    ~Threadpool()
-    {
-        {
-            unique_lock<mutex> locker(mtx);
-            isStop = true;
-        }
-    
-        //通知所有阻塞线程
-        cv.notify_all();
-    
-        //确保线程执行完成
-        // for(thread& onethread : workers)
-        // {
-        //     onethread.join();
-        // }
-        for(int i = 0; i < workers.size(); ++i)
-        {
-            workers[i].join();
-        }
-    }
-
     void worker()
     {
         while(true)

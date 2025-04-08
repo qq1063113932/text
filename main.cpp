@@ -3,6 +3,7 @@
 #include "mysql_connection_pool.h"
 #include "threadpool.h"
 #include "socket.h"
+#include "log.h"
 
 void query()
 {
@@ -28,7 +29,7 @@ int add(int a, int b)
 
 void threadwork()
 {
-    Threadpool* threadpool = Threadpool::GetInstance(4);
+    Threadpool* threadpool = new Threadpool(4);
     for(int i = 0; i < 20; ++i)
     {
         auto resfuture = threadpool->enqueue([](int a, int b) -> int{
@@ -37,13 +38,30 @@ void threadwork()
         }, 10*i, 10*i);
         cout << "result: " << resfuture.get() << endl;
     }
+    delete threadpool;
+}
+
+void logtext()
+{
+    Logger logger("log.txt");
+    logger.log(LogLevel::INFO, "start logger");
+    int id = 42;
+    string action = "login";
+    double duration = 3.2;
+    logger.log(LogLevel::DEBUG, "User {} performed {} in {} seconds", id , action, duration);
+    logger.log(LogLevel::WARNING, "hello world", action, action, action);
+    logger.log(LogLevel::ERROR, "User {} performed {} in seconds ", id , action, duration);
+    logger.log(LogLevel::INFO, "User {} performed {} in {} seconds ", id , action);
+    logger.log(LogLevel::INFO, "User {} performed {} in {} seconds ");
+    logger.log(LogLevel::DEBUG, "User {} performed {} in {} seconds ");
 }
 
 int main()
 {
     // query();
     // threadwork();
-    Socket server;
-    server.start();
+    // Socket server;
+    // server.start();
+    logtext();
     return 0;
 }
