@@ -42,8 +42,10 @@ bool Socket::start()
         return false;
     }
     cout << "socket is listening on port " << m_port << "..." << endl;
-    evenAccept();
+    // evenAccept();
     // select_model();
+    epoll_model();
+    close(m_socket);
     return true;
 }
 
@@ -173,6 +175,7 @@ void Socket::httpResolve(const char* buffer)
     {
         if(fileExists(filepath))
         {
+            cout << "http" << endl;
             string content = readFile(filepath);
             string contentType = getContentType(filepath);
             ostringstream response;
@@ -209,10 +212,10 @@ void Socket::select_model()
     while (true)
     {
         tmpfds = readfds;
-        int ret = select(maxfd + 1, &tmpfds, nullptr, nullptr, nullptr);
+        int ret = select(maxfd + 1, &tmpfds, nullptr, nullptr, nullptr); //返回有读事件的文件描述符
         if(ret > 0)
         {  
-            if(FD_ISSET(m_socket, &tmpfds))
+            if(FD_ISSET(m_socket, &tmpfds)) //处理服务器监听fd的事件
             {
                 new_socket = accept(m_socket, nullptr, nullptr);
                 if(new_socket > 0)
@@ -221,7 +224,7 @@ void Socket::select_model()
                     maxfd = maxfd > new_socket ? maxfd : new_socket;
                 }   
             }
-            for(int client_socket = 0; client_socket <= maxfd; client_socket++)
+            for(int client_socket = 0; client_socket <= maxfd; client_socket++) //处理客户端发送消息的fd
             {
                 if(client_socket == m_socket) continue;
                 if(FD_ISSET(client_socket, &tmpfds))
@@ -229,13 +232,18 @@ void Socket::select_model()
                     //接收客户端发送的消息
                     char buffer[4096] = {0}; //接收缓冲区
                     ssize_t bytes_read = recv(client_socket, buffer, sizeof(buffer), 0);
-                    if(bytes_read <= 0)
+                    if(bytes_read == 0)//客户端断开连接
                     {
                         cout << "socket disconnect" << endl;
                         close(client_socket);
                         FD_CLR(client_socket, &readfds);
                         continue;
                     }
+                    else if(bytes_read < 0)
+                    {
+                        perror("recv error");
+                        continue;
+                    }   
                     else
                     {
                         cout << "clinent: \n" << buffer << endl;
@@ -268,3 +276,82 @@ void Socket::select_model()
     } 
 }
 
+void Socket::epoll_model()
+{
+    //创建epoll实例，size参数已经弃用填一个大于0的数即可
+    int epfd = epoll_create(1);
+    if(epfd == -1)
+    {
+        perror("epoll_create");
+        return;
+    }
+
+    //存储事件信息
+    epoll_event ev;
+    ev.events = EPOLLIN; //读事件
+    ev.data.fd = m_socket;
+
+    //将要监听的fd加入epoll实例
+    if(epoll_ctl(epfd, EPOLL_CTL_ADD, m_socket, &ev) == -1)
+    {
+        perror("epoll_ctl: add listen_fd");
+        return;
+    }
+
+    epoll_event events[1024];
+    int size = sizeof(events) / sizeof(events[0]);
+    while(true)
+    {
+        int num = epoll_wait(epfd, events, size, -1);
+        for(int i = 0; i < num; ++i)
+        {
+            int fd = events[i].data.fd;
+            new_socket = fd;
+            if(fd == m_socket)
+            {
+                int client_socket = accept(fd, nullptr, nullptr);
+                //将客户端连接的fd加入epoll实例
+                epoll_event ev;
+                ev.events = EPOLLIN;
+                ev.data.fd = client_socket;
+                epoll_ctl(epfd, EPOLL_CTL_ADD, client_socket, &ev);
+            }
+            else
+            {
+                //接收客户端发送的消息
+                char buffer[1024] = {0}; //接收缓冲区
+                ssize_t bytes_read = recv(fd, buffer, sizeof(buffer), 0);
+                if(bytes_read == 0)//客户端断开连接
+                {
+                    cout << "socket disconnect" << endl;
+                    epoll_ctl(epfd, EPOLL_CTL_DEL, fd, &ev);                 
+                    close(fd); //先删除再关闭
+                    continue;
+                }
+                else if(bytes_read < 0)
+                {
+                    perror("recv error");
+                    close(fd);
+                    epoll_ctl(epfd, EPOLL_CTL_DEL, fd, nullptr);
+                    continue;
+                }
+                else
+                {
+                    cout << "clinent: \n" << buffer << endl;
+                    string s(buffer, 3);
+                    if(s == "GET")
+                    {
+                        httpResolve(buffer);    
+                    }
+                    else
+                    {
+                        // const char* message = "hello from server";
+                        const char* message = buffer;
+                        send(fd, message, strlen(message), 0); //发送数据
+                    }
+                }
+            }
+        }
+
+    }
+}

@@ -10,6 +10,7 @@
 #include <sstream>
 #include <cstring>
 #include <unordered_map>
+#include <sys/epoll.h>
 #include "threadpool.h"
 
 using namespace std;
@@ -28,6 +29,7 @@ public:
     string getContentType(const string & path);
     void worker(int socketfd);
     void select_model();
+    void epoll_model();
 private:
     int m_socket;
     int new_socket;

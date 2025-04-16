@@ -60,8 +60,8 @@ int main()
 {
     // query();
     // threadwork();
-    // Socket server;
-    // server.start();
-    logtext();
+    Socket server;
+    server.start();
+    // logtext();
     return 0;
 }
